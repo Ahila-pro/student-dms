@@ -1,0 +1,12 @@
+trigger:
+  - main
+
+pool:
+  name: stud-sh-pool  # Self-hosted agent pool name
+
+steps:
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)'
+      Contents: '**'
+      TargetFolder: 'C:\xampp\htdocs\student-dms'  # or your local web server folder
