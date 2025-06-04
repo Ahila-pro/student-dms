@@ -9,19 +9,16 @@ variables:
   packagePath: '$(Build.ArtifactStagingDirectory)/laravel-app.zip'
 
 steps:
-# Install PHP and dependencies
-- task: UsePhpVersion@0
-  inputs:
-    version: '$(phpVersion)'
-
+# Install PHP & Composer Dependencies
 - script: |
+    sudo update-alternatives --set php /usr/bin/php$(phpVersion)
     php -v
     composer install --no-interaction --prefer-dist --optimize-autoloader
     cp .env.example .env
     php artisan key:generate
-  displayName: 'Install PHP dependencies & setup Laravel'
+  displayName: 'Install PHP and Laravel Dependencies'
 
-# Archive the application
+# Archive Laravel App
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
@@ -29,16 +26,17 @@ steps:
     archiveType: 'zip'
     archiveFile: '$(packagePath)'
     replaceExistingArchive: true
-  displayName: 'Archive Laravel app'
+  displayName: 'Archive Laravel App'
 
-# Publish artifact
+# Publish the Artifact
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'drop'
     publishLocation: 'Container'
+  displayName: 'Publish Artifact'
 
-# Deploy to Azure App Service
+# Deploy to Azure Web App (Linux)
 - task: AzureRmWebAppDeployment@5
   displayName: 'Deploy to Azure App Service'
   inputs:
