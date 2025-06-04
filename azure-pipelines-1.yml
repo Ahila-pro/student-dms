@@ -2,33 +2,29 @@ trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
+  name: stud-sh-pool  # 👈 Your self-hosted Windows agent pool name
 
 variables:
   phpVersion: 8.2
-  packagePath: '$(Build.ArtifactStagingDirectory)/laravel-app.zip'
+  packagePath: '$(Build.ArtifactStagingDirectory)\app.zip'
 
 steps:
-# Install PHP & Composer Dependencies
-- script: |
-    sudo update-alternatives --set php /usr/bin/php$(phpVersion)
-    php -v
-    composer install --no-interaction --prefer-dist --optimize-autoloader
-    cp .env.example .env
-    php artisan key:generate
-  displayName: 'Install PHP and Laravel Dependencies'
+# ✅ Checkout code
 
-# Archive Laravel App
+
+
+
+# ✅ Archive Laravel app
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+    rootFolderOrFile: '$(Build.SourcesDirectory)'
     includeRootFolder: false
     archiveType: 'zip'
     archiveFile: '$(packagePath)'
     replaceExistingArchive: true
-  displayName: 'Archive Laravel App'
+  displayName: 'Archive PHP App'
 
-# Publish the Artifact
+# ✅ Publish artifact to pipeline
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
@@ -36,18 +32,18 @@ steps:
     publishLocation: 'Container'
   displayName: 'Publish Artifact'
 
-# Deploy to Azure Web App (Linux)
+# ✅ Deploy to Azure Linux App Service
 - task: AzureRmWebAppDeployment@5
-  displayName: 'Deploy to Azure App Service'
+  displayName: 'Deploy to Azure Linux App Service'
   inputs:
     ConnectionType: 'AzureRM'
-    azureSubscription: 'Azure subscription 1(1)(8ca97cad-9ab1-42a2-9d9e-bdbf8876c147)'
-    appType: 'webAppLinux'
-    WebAppName: 'studdmsstatic'
+    azureSubscription: 'Azure subscription 1(1)(8ca97cad-9ab1-42a2-9d9e-bdbf8876c147)'         # 👈 Update this
+    appType: 'webAppLinux'                                      # 👈 IMPORTANT: must be Linux
+    WebAppName: 'studdmsstatic'                           # 👈 Update this
     deployToSlotOrASE: true
-    ResourceGroupName: 'rgp-devops'
+    ResourceGroupName: 'rgp-devops'                 # 👈 Update this
     SlotName: 'production'
-    packageForLinux: '$(packagePath)'
-    RuntimeStack: 'PHP|8.2'
+    packageForLinux: '$(packagePath)'                           # 👈 Use `packageForLinux` here
+    RuntimeStack: 'PHP|8.2'                                     # 👈 Linux runtime (App Service Plan)
     StartupCommand: ''
     DeploymentTypeLinux: 'oneDeploy'
